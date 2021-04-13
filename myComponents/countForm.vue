@@ -90,6 +90,8 @@ export default {
 							}
 						}
 					});
+				}else {
+					this.$emit('submit', this.formData);
 				}
 			} else {
 				uni.showModal({

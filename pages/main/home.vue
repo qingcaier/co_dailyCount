@@ -1,14 +1,11 @@
 <template>
 	<view class="home">
 		<view class="home__background"><image class="home__backgroundImg" :src="bgImg" mode="scaleToFill"></image></view>
-		<view v-if="!isLogin" class="home_empty">
-			<!-- <view>
-				空空如也
-			</view> -->
+		<!-- <view v-if="isLogin === false" class="home_empty">
 			<canvas canvas-id="snow" style="width: 750rpx;height: 100vh;"></canvas>
 			<button class="home__btn" type="default" size="mini">去登录</button>
-		</view>
-		<view v-else class="home_body">
+		</view> -->
+		<view v-if="isLogin" class="home_body">
 			<view class="home__header">
 				<image class="home__img" src="../../static/images/calendar.png" @click="toCalendar"></image>
 				<image class="home__img" src="../../static/images/add.png" @click="addCountItem"></image>
@@ -16,10 +13,10 @@
 			<scroll-view class="home__main" scroll-y="true">
 				<block v-for="(item, idx) in countMsgList" :key="idx">
 					<view :class="'home__msg-' + item.role">
-						<image class="home__avatar" :src="item.avatar"></image>
-						<view :class="'home__msgContain-' + item.role">
+						<image class="home__avatar" :src="item.avatarUrl"></image>
+						<view :class="'home__msgContain-' + item.role" @click="editCount">
 							<view :class="'home__msgOwner-' + item.role">{{ item.nickName }}</view>
-							<view :class="'home__msgMain-' + item.role">{{ `${item.count}元，${item.remarks}` }}</view>
+							<view :class="'home__msgMain-' + item.role">{{ `${item.count}元${item.remarks?'，':''}${item.remarks}` }}</view>
 						</view>
 					</view>
 				</block>
@@ -36,7 +33,7 @@ import uniPopup from '@/components/uni-popup/uni-popup.vue';
 import uniPopupForm from '@/components/uni-popup/uni-popup-form.vue';
 import uniPopupMessage from '@/components/uni-popup/uni-popup-message.vue';
 
-import { play, stop } from '../../classes/snow.js';
+// import { play, stop } from '../../classes/snow.js';
 
 const bg = {
 	beforeLogin: 'cloud://qingczb-mint-test-hqawo.7169-qingczb-mint-test-hqawo-1302211891/uploadImg/bg.jpg',
@@ -50,12 +47,12 @@ export default {
 	},
 	data() {
 		return {
-			bgImg: '',
-			isLogin: "",
+			bgImg: '', // 背景图
+			isLogin: '', // 是否登录判断
 
-			roomName: '', // 聊天室名称
-			roomId: '', // 聊天室id
-			role: '', // 信息位置
+			pageIndex: 0, // 账目请求当前页数
+			pageCount: 2, // 每次请求账目数
+
 			countMsgList: [] // 账目信息队列
 		};
 	},
@@ -66,149 +63,114 @@ export default {
 		// }
 	},
 	onLoad(option) {
-		play();
+		// play();
 		this.init();
+		if (!this.isLogin) {
+			uni.switchTab({
+				url: '../personal/mine'
+			});
+		} else {
+			this.getCountMsgs();
+		}
 	},
 	onTabItemTap() {
+		// console.log(this.isLogin)
 		if (!this.isLogin) {
 			this.init();
 		}
+
+		this.getCountMsgs();
 	},
 	methods: {
 		init() {
-			// if (this.isLogin) {
-			// 	this.bgImg = bg.login;
-			// 	stop();
-			// } else {
-			// 	this.bgImg = bg.beforeLogin;
-			// }
 			uni.showLoading();
 
 			const { isLogin } = getApp().globalData;
 			this.isLogin = isLogin;
 			if (isLogin) {
 				this.bgImg = bg.login;
-				stop();
+				// stop();
 			} else {
 				this.bgImg = bg.beforeLogin;
 			}
-			
+
 			uni.hideLoading();
-			
-		},
-		// 添加新账目
-		addCountItem() {
-			this.$refs.popup.open();
 		},
 
-		// 获取记账信息
-		getCountMsg() {
-			const userName = uni.getStorageSync('userInfo').nickName;
-			let result = [
-				{
-					_id: '362458465ef8a4de005a1c281cbdedee',
-					avatar: 'https://wx.qlogo.cn/mmopen/vi_32/q5C74jLPtXCu9x0TyTpq1wmts9JVQjsey8poGmIgfPoT8ITIne3Yiax5OkXXUrHudDH9zRhpKPqL0iaSuXHRkZtQ/132',
-					count: 123,
-					createTime: '2020-06-28T22:10:37+08:00',
-					createTimestamp: 1593353437000,
-					nickName: '清婇',
-					remarks: '浪屎事',
-					roomId: 'b960af395ee630ba0014945e02da7d41',
-					state: 0,
-					userId: 'oSBeY5JEYVEAmHcJOk-H5Rk_Sgu4'
-				},
-				{
-					_id: '362458465ef8a4de005a1c281cbdedee',
-					avatar: 'https://wx.qlogo.cn/mmopen/vi_32/q5C74jLPtXCu9x0TyTpq1wmts9JVQjsey8poGmIgfPoT8ITIne3Yiax5OkXXUrHudDH9zRhpKPqL0iaSuXHRkZtQ/132',
-					count: 3,
-					createTime: '2020-06-28T22:10:37+08:00',
-					createTimestamp: 1593353457000,
-					nickName: '清婇',
-					remarks: '查查查',
-					roomId: 'b960af395ee630ba0014945e02da7d41',
-					state: 0,
-					userId: 'oSBeY5JEYVEAmHcJOk-H5Rk_Sgu4'
-				},
-				{
-					_id: '362458465ef8a4de005a1c281cbdedee',
-					avatar: 'https://wx.qlogo.cn/mmopen/vi_32/q5C74jLPtXCu9x0TyTpq1wmts9JVQjsey8poGmIgfPoT8ITIne3Yiax5OkXXUrHudDH9zRhpKPqL0iaSuXHRkZtQ/132',
-					count: 23,
-					createTime: '2020-06-28T22:10:37+08:00',
-					createTimestamp: 1593353467000,
-					nickName: '清婇',
-					remarks: '就回个',
-					roomId: 'b960af395ee630ba0014945e02da7d41',
-					state: 0,
-					userId: 'oSBeY5JEYVEAmHcJOk-H5Rk_Sgu4'
-				},
-				{
-					_id: '362458465ef8a4de005a1c281cbdedee',
-					avatar: 'https://wx.qlogo.cn/mmopen/vi_32/q5C74jLPtXCu9x0TyTpq1wmts9JVQjsey8poGmIgfPoT8ITIne3Yiax5OkXXUrHudDH9zRhpKPqL0iaSuXHRkZtQ/132',
-					count: 223,
-					createTime: '2020-06-28T22:10:37+08:00',
-					createTimestamp: 1593353487000,
-					nickName: '清婇',
-					remarks: '哈弗接',
-					roomId: 'b960af395ee630ba0014945e02da7d41',
-					state: 0,
-					userId: 'oSBeY5JEYVEAmHcJOk-H5Rk_Sgu4'
-				},
-				{
-					_id: '362458465ef8a4de005a1c281cbdedee',
-					avatar: 'https://wx.qlogo.cn/mmopen/vi_32/q5C74jLPtXCu9x0TyTpq1wmts9JVQjsey8poGmIgfPoT8ITIne3Yiax5OkXXUrHudDH9zRhpKPqL0iaSuXHRkZtQ/132',
-					count: 223,
-					createTime: '2020-06-28T22:10:37+08:00',
-					createTimestamp: 1593353487000,
-					nickName: '倪順豐Carson Ni',
-					remarks: '傲人放弃我',
-					roomId: 'b960af395ee630ba0014945e02da7d41',
-					state: 0,
-					userId: 'oSBeY5AOQBaYcqxp6HFRSx-0DG3E'
-				}
-			];
-
-			result.forEach(item => {
-				if (item.nickName === userName) {
-					item.role = 'right';
-				} else {
-					item.role = 'left';
-				}
+		async getCountMsgs() {
+			const { list: countList, totalNum } = await global.http('getCounts', {
+				pageIndex: this.pageIndex,
+				pageCount: this.pageCount
 			});
-			this.countMsgList = result;
-			console.log(this.countMsgList);
-		},
 
-		// 提交新账目
-		submitForm(count, remarks) {
-			console.log('拿到的东西', count, remarks);
-			const userInfo = uni.getStorageSync('userInfo');
-			console.log(userInfo);
-			wx.cloud.callFunction({
-				name: 'addCount',
-				data: {
-					count: Number(count),
-					remarks,
-					roomId: this.roomId
-				},
-				success: res => {
-					console.log(res);
-					const code = res.result.code;
-					if (code === 200) {
-					} else if (code === 400) {
-						this.errorMsg = res.result.msg;
-						this.$refs.popup_fail.open();
+			console.log(countList);
+			if (countList && countList.length > 0) {
+				const userName = getApp().globalData.userInfo.nickName;
+				countList.forEach(item => {
+					if (item.nickName === userName) {
+						item.role = 'right';
+					} else {
+						item.role = 'left';
 					}
-				}
-			});
+				});
+				this.countMsgList = countList.concat(this.countMsgList);
+				this.pageIndex++;
+			}
 		},
+		
+		editCount(){},
 
-		// 打开日历统计
-		toCalendar() {}
+		// // 添加新账目
+		// addCountItem() {
+		// 	this.$refs.popup.open();
+		// },
+
+		// // 获取记账信息
+		// getCountMsg() {
+		// 	const userName = uni.getStorageSync('userInfo').nickName;
+		// 	let result = [];
+
+		// 	result.forEach(item => {
+		// 		if (item.nickName === userName) {
+		// 			item.role = 'right';
+		// 		} else {
+		// 			item.role = 'left';
+		// 		}
+		// 	});
+		// 	this.countMsgList = result;
+		// 	console.log(this.countMsgList);
+		// },
+
+		// // 提交新账目
+		// submitForm(count, remarks) {
+		// 	console.log('拿到的东西', count, remarks);
+		// 	const userInfo = uni.getStorageSync('userInfo');
+		// 	console.log(userInfo);
+		// 	wx.cloud.callFunction({
+		// 		name: 'addCount',
+		// 		data: {
+		// 			count: Number(count),
+		// 			remarks,
+		// 			roomId: this.roomId
+		// 		},
+		// 		success: res => {
+		// 			console.log(res);
+		// 			const code = res.result.code;
+		// 			if (code === 200) {
+		// 			} else if (code === 400) {
+		// 				this.errorMsg = res.result.msg;
+		// 				this.$refs.popup_fail.open();
+		// 			}
+		// 		}
+		// 	});
+		// },
+
+		// // 打开日历统计
+		// toCalendar() {}
 	},
 	mounted() {
-		console.log('有没有用', this.roomName);
-		this.getCountMsg();
-		console.log(this.countMsgList);
+		// this.getCountMsg();
+		// console.log(this.countMsgList);
 	}
 };
 </script>

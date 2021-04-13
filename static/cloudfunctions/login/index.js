@@ -12,6 +12,8 @@ exports.main = async (event, context) => {
 		const targetUser = (await db.collection("users").where({
 			_id: wxContext.OPENID
 		}).get()).data;
+		
+		delete event.userInfo;
 		// let targetUser = (await db.collection("users").doc(wxContext.OPENID).get()).data;
 		if (targetUser.length === 0) {
 			// 无此用户，则新增用户视为登录
