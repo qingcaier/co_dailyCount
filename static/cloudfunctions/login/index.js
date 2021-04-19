@@ -12,7 +12,7 @@ exports.main = async (event, context) => {
 		const targetUser = (await db.collection("users").where({
 			_id: wxContext.OPENID
 		}).get()).data;
-		
+
 		delete event.userInfo;
 		// let targetUser = (await db.collection("users").doc(wxContext.OPENID).get()).data;
 		if (targetUser.length === 0) {
@@ -27,12 +27,17 @@ exports.main = async (event, context) => {
 			// 已有此用户，则更新用户信息
 			await db.collection("users").where({
 				_id: wxContext.OPENID
-			}).set({
+			}).update({
 				data: {
 					...event
 				}
 			})
 		}
+		// await db.collection("users").doc(wxContext.OPENID).update({
+		// 	data: {
+		// 		...event
+		// 	}
+		// })
 
 		return ({
 			head: {
@@ -45,7 +50,7 @@ exports.main = async (event, context) => {
 		return ({
 			head: {
 				resCode: "100001",
-				resMsg: "系统异常"
+				resMsg: "系统异常",
 			}
 		})
 	}

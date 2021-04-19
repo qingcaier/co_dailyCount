@@ -1,20 +1,25 @@
 {
 	"cloud": true,
 	"pages": [{
-			"path": "pages/main/home",
+			"path": "pages/mine/mine",
+			"style": {
+				"navigationBarTitleText": "小花园"
+			}
+		}, {
+			"path": "pages/home/home",
 			"style": {
 				"navigationBarTitleText": "欢迎您的到来！"
 			}
 		}, {
-			"path": "pages/main/addCount",
+			"path": "pages/addCount/addCount",
 			"style": {
 				"navigationBarTitleText": "又破费了"
 			}
 		},
 		{
-			"path": "pages/personal/mine",
+			"path": "pages/updateCount/updateCount",
 			"style": {
-				"navigationBarTitleText": "小花园"
+				"navigationBarTitleText": "琐碎"
 			}
 		}
 	],
@@ -34,18 +39,18 @@
 		"iconWidth": "24px",
 		"spacing": "3px",
 		"list": [{
-				"pagePath": "pages/main/home",
+				"pagePath": "pages/home/home",
 				"iconPath": "static/images/group.png",
 				"selectedIconPath": "static/images/group_active.png",
 				"text": "我的群组"
 			},
 			{
-				"pagePath": "pages/main/addCount",
+				"pagePath": "pages/addCount/addCount",
 				"iconPath": "static/images/icon_release.png",
 				"selectedIconPath": "static/images/icon_release.png"
 			},
 			{
-				"pagePath": "pages/personal/mine",
+				"pagePath": "pages/mine/mine",
 				"iconPath": "static/images/personal.png",
 				"selectedIconPath": "static/images/personal_active.png",
 				"text": "我的"

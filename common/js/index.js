@@ -1,4 +1,4 @@
-import moment from "moment";
+const moment = require("moment");
 const tools = {
 	isEmptyObj(obj){
 		return Object.keys(obj).length === 0;
@@ -19,10 +19,8 @@ const tools = {
 	 * @return {String} 格式化后时间
 	 */
 	formatShowTime(time){
-		// 获取当前时间戳
-		const currentTimestamp = moment().valueOf();
 		// 获取今天起始时间戳
-		const todayStartTimestamp = moment().format("YYYY-MM-DD").valueOf();
+		const todayStartTimestamp = moment().startOf('day').format('x');
 		// 传入时间时间戳
 		const preTimestamp = moment(time).valueOf();
 		

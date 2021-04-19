@@ -1,23 +1,13 @@
 <template>
 	<view class="countForm">
-		<view class="countForm__countItem">
-			<view class="countForm__label">您的汗血</view>
-			<input
-				class="countForm__inp"
-				:value="formData.count"
-				placeholder="请输入"
-				@input="countChange"
-				onKeyUp="value=value.replace(/[^\d]/g,'')"
-				onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"
-			/>
+		<view class="countForm__totalCount">
+			<view class="countForm__totalCount-before">{{ showCountBeforePoint || '0' }}</view>
+			<view class="countForm__totalCount-after">.{{ showCountAfterPoint || '00' }}</view>
 			<view class="countForm__yuan">元</view>
 		</view>
 		<view class="countForm__line"></view>
-		<view class="countForm__remarksItem">
-			<view class="countForm__label">备注</view>
-			<textarea :value="formData.remarks" class="countForm__members" placeholder="请备注" @input="remarksChange" />
-		</view>
-		<button class="countForm__btn" @click="submitCount">提交</button>
+		<view class="countForm__remarksItem"><textarea :value="formData.remarks" class="countForm__members" placeholder="这里写" @input="remarksChange" /></view>
+		<button class="countForm__btn" @click="submitCount">确定</button>
 	</view>
 </template>
 
@@ -28,39 +18,59 @@ export default {
 			type: Boolean,
 			default: false
 		},
-		preFormData: {
-			type: Object,
-			default: () => ({})
+		preRemarks: {
+			type: String,
+			default: ''
+		}
+	},
+	computed: {
+		// 账目总数
+		totalCount() {
+			const countArr = this.remarks.match(/(\d+\.\d+)|\d+/g);
+			console.log('匹配数组', countArr);
+			if (countArr && countArr.length > 0) {
+				let total = countArr.reduce((total, num) => {
+					return parseFloat(total) + parseFloat(num);
+				});
+				return parseFloat(total).toFixed(2);
+			} else {
+				return '';
+			}
+		},
+
+		showCountBeforePoint() {
+			return this.totalCount.split('.')[0];
+		},
+
+		showCountAfterPoint() {
+			return this.totalCount.split('.')[1];
 		}
 	},
 	data() {
 		return {
-			formData: {
-				count: '', // 账目
-				remarks: '' // 备注
-			}
+			remarks: '' // 备注
 		};
 	},
 	mounted() {
 		if (this.isEdit) {
-			this.formData = this.preFormData;
+			this.remarks = this.preRemarks;
 		}
 	},
 	methods: {
 		// 输入框双向绑定
-		countChange(e) {
-			this.formData.count = e.detail.value;
-		},
 		remarksChange(e) {
-			this.formData.remarks = e.detail.value;
+			this.remarks = e.detail.value;
 		},
 
 		// 提交账目
 		async submitCount() {
-			const validate = global.tools.isPositiveFloat(this.formData.count);
+			if (!this.totalCount) {
+				return;
+			}
+			const validate = global.tools.isPositiveFloat(this.totalCount);
 			if (validate) {
 				// 小数点后数字不超过两位
-				const pointNumber = this.formData.count.split('.');
+				const pointNumber = this.totalCount.split('.');
 				const [beforePoint = '', afterPoint = ''] = pointNumber;
 				if (afterPoint.length > 2) {
 					uni.showModal({
@@ -70,13 +80,16 @@ export default {
 				} else if (parseInt(beforePoint) > 100 && parseInt(beforePoint) < 200) {
 					uni.showToast({
 						title: '这。。有点小贵',
-						icon:"none",
-						image:"/static/images/ganga.png",
+						icon: 'none',
+						image: '/static/images/ganga.png',
 						duration: 1000,
 						position: 'top'
 					});
 					setTimeout(() => {
-						this.$emit('submit', this.formData);
+						this.$emit('submit', {
+							count: this.totalCount,
+							remarks: this.remarks
+						});
 					}, 1000);
 				} else if (parseInt(beforePoint) >= 200) {
 					uni.showModal({
@@ -86,12 +99,18 @@ export default {
 						confirmText: '爷有钱',
 						success: res => {
 							if (res.confirm) {
-								this.$emit('submit', this.formData);
+								this.$emit('submit', {
+									count: this.totalCount,
+									remarks: this.remarks
+								});
 							}
 						}
 					});
-				}else {
-					this.$emit('submit', this.formData);
+				} else {
+					this.$emit('submit', {
+						count: this.totalCount,
+						remarks: this.remarks
+					});
 				}
 			} else {
 				uni.showModal({
@@ -118,14 +137,23 @@ export default {
 	background-color #FFFFFF
 	border-radius 5px
 	box-shadow 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)
-	.countForm__countItem
+	.countForm__totalCount
 		display flex
-		justify-content space-between
+		justify-content center
+		align-items baseline
 		margin-top 16px
+		color #FB7299
+		
+		&-before{
+			font-size 60rpx
+			font-weight 600
+		}
+		&-after{
+			font-size 45rpx
+		}
 		.countForm__yuan
-			position relative
-			right 60rpx
-			color #333333
+			margin-left 20rpx
+			font-weight bold
 	.countForm__line
 		height 1rpx
 		width 100%
@@ -139,8 +167,6 @@ export default {
 			display flex
 			width 100%
 			margin-top 10px
-	.countForm__label
-		color #333333
 	.countForm__btn
 		height 60rpx
 		width 120rpx

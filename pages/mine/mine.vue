@@ -28,7 +28,7 @@ export default {
 			userInfo: {}
 		};
 	},
-	onShow() {
+	onLoad() {
 		this.init();
 	},
 	mounted() {},
@@ -37,65 +37,55 @@ export default {
 			const { isLogin, userInfo } = getApp().globalData;
 			this.isLogin = isLogin;
 			this.userInfo = userInfo;
+			
+			if(isLogin){
+				uni.switchTab({
+					url: '../home/home'
+				});
+			}
 		},
 		getUserInfo() {
-			console.log('res');
-			wx.getUserProfile({
-				desc: '用于使用展示',
-				success: async res => {
-					console.log('res', res);
-					const { userInfo } = res;
-					await global.http('login', userInfo);
-					await uni.showToast({
-						title: '登录成功'
-					});
-
-					uni.setStorageSync('userInfo', userInfo);
-
-					setTimeout(() => {
-						getApp().globalData.isLogin = true;
-						getApp().globalData.userInfo = userInfo;
-						this.isLogin = true;
-						this.userInfo = userInfo;
-					}, 1500);
-				},
-				fail: err => {
-					console.log(err);
-
-					// 拒绝授权
-					if (err.errMsg === 'getUserProfile:fail auth deny') {
-						uni.showModal({
-							title: '授权失败',
-							showCancel: false
+			try {
+				console.log('res');
+				wx.getUserProfile({
+					desc: '用于使用展示',
+					success: async res => {
+						console.log('res', res);
+						const { userInfo } = res;
+						await global.http('login', userInfo);
+						await uni.showToast({
+							title: '登录成功'
 						});
-					} else {
-						uni.showModal({
-							title: '系统异常',
-							showCancel: false
-						});
+
+						uni.setStorageSync('userInfo', userInfo);
+
+						setTimeout(() => {
+							getApp().globalData.isLogin = true;
+							getApp().globalData.userInfo = userInfo;
+							this.isLogin = true;
+							this.userInfo = userInfo;
+						}, 1500);
+					},
+					fail: err => {
+						console.log(err);
+
+						// 拒绝授权
+						if (err.errMsg === 'getUserProfile:fail auth deny') {
+							uni.showModal({
+								title: '授权失败',
+								showCancel: false
+							});
+						} else {
+							uni.showModal({
+								title: '系统异常',
+								showCancel: false
+							});
+						}
 					}
-				}
-			});
-			// if (e.detail.userInfo) {
-			// 	wx.cloud.callFunction({
-			// 		name: 'login',
-			// 		data: e.detail.userInfo,
-			// 		success: res => {
-			// 			console.log(res);
-			// 			let status = res.result.code;
-			// 			if (status === 200) {
-			// 				this.$refs.popup_success.open();
-			// 				uni.setStorageSync('userInfo', e.detail.userInfo);
-			// 				setTimeout(() => {
-			// 					this.isLogin = true;
-			// 					this.userInfo = e.detail.userInfo;
-			// 				}, 1200);
-			// 			}
-			// 		}
-			// 	});
-			// } else {
-			// 	this.$refs.popup_fail.open();
-			// }
+				});
+			} catch (err) {
+				console.log(err);
+			}
 		}
 	}
 };

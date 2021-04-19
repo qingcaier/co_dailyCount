@@ -7,19 +7,32 @@
 		</view> -->
 		<view v-if="isLogin" class="home_body">
 			<view class="home__header">
-				<image class="home__img" src="../../static/images/calendar.png" @click="toCalendar"></image>
+				<image class="home__img" src="../../static/images/calendar.png" @click="goBottom()"></image>
 				<image class="home__img" src="../../static/images/add.png" @click="addCountItem"></image>
 			</view>
-			<scroll-view class="home__main" scroll-y="true">
-				<block v-for="(item, idx) in countMsgList" :key="idx">
+			<scroll-view
+				class="home__main"
+				:scroll-y="true"
+				:enable-flex="true"
+				:show-scrollbar="true"
+				upper-threshold="0"
+				:scroll-top="scrollTop"
+				@scroll="scroll"
+				@scrolltoupper="getMoreCount"
+			>
+				<view v-for="(item, idx) in handleCountList" :key="idx" class="home__msg">
+					<view v-if="item.showTime" class="home__timeBoard">
+						<view class="home__time">{{ item.showTime }}</view>
+					</view>
 					<view :class="'home__msg-' + item.role">
 						<image class="home__avatar" :src="item.avatarUrl"></image>
-						<view :class="'home__msgContain-' + item.role" @click="editCount">
+						<view :class="'home__msgContain-' + item.role">
 							<view :class="'home__msgOwner-' + item.role">{{ item.nickName }}</view>
-							<view :class="'home__msgMain-' + item.role">{{ `${item.count}元${item.remarks?'，':''}${item.remarks}` }}</view>
+							<view :class="'home__msgMain-' + item.role" @click="toUpdate(item.remarks)">{{ item.remarks }}</view>
 						</view>
 					</view>
-				</block>
+				</view>
+				<!-- <view id="gundong" style="height:1px;width:100%"></view> -->
 			</scroll-view>
 		</view>
 		<!-- <view></view> -->
@@ -50,39 +63,114 @@ export default {
 			bgImg: '', // 背景图
 			isLogin: '', // 是否登录判断
 
-			pageIndex: 0, // 账目请求当前页数
-			pageCount: 2, // 每次请求账目数
+			pageIndex: 1, // 账目请求当前页数
+			pageCount: 10, // 每次请求账目数
+			totalNum: 0, //总数据
+			isMore: false, // 是否还有更多
 
-			countMsgList: [] // 账目信息队列
+			countMsgList: [], // 账目信息队列
+
+			scrollTop: 9999,
+			old: {
+				scrollTop: 0
+			}
 		};
 	},
 	computed: {
-		// isLogin() {
-		// 	const userInfo = uni.getStorageSync('userInfo');
-		// 	return !global.tools.isEmptyObj(userInfo);
-		// }
-	},
-	onLoad(option) {
-		// play();
-		this.init();
-		if (!this.isLogin) {
-			uni.switchTab({
-				url: '../personal/mine'
-			});
-		} else {
-			this.getCountMsgs();
-		}
-	},
-	onTabItemTap() {
-		// console.log(this.isLogin)
-		if (!this.isLogin) {
-			this.init();
-		}
+		handleCountList() {
+			if (this.countMsgList.length > 0) {
+				let finalCountList = this.countMsgList;
 
-		this.getCountMsgs();
+				// 第一条数据显示时间
+				finalCountList[0].showTime = global.tools.formatShowTime(finalCountList[0].createTime);
+				for (let i = 1; i < finalCountList.length; i++) {
+					const preTime = finalCountList[i - 1].createTime.split(' ')[0];
+					const nextTime = finalCountList[i].createTime.split(' ')[0];
+					if (preTime !== nextTime) {
+						finalCountList[i].showTime = global.tools.formatShowTime(finalCountList[i].createTime);
+					}
+				}
+
+				const userName = getApp().globalData.userInfo.nickName;
+				console.log('他妈的');
+				finalCountList.forEach(item => {
+					if (item.nickName === userName) {
+						item.role = 'right';
+					} else {
+						item.role = 'left';
+					}
+				});
+				console.log(finalCountList);
+				return finalCountList;
+			} else {
+				return [];
+			}
+		},
+
+		totalPage() {
+			return Math.ceil(this.totalNum / this.pageCount);
+		}
 	},
+	async onLoad(option) {
+		// play();
+		this.setBgImg();
+		if (this.isLogin) {
+			await this.getCountMsgs();
+		}
+	},
+	async onShow() {
+		await this.init();
+		this.goBottom();
+	},
+	// onTabItemTap() {
+	// 	// console.log(this.isLogin)
+	// 	this.init();
+	// },
 	methods: {
-		init() {
+		async init() {
+			if (!this.isLogin) {
+				this.setBgImg();
+			}
+			if (this.isLogin) {
+				const countChange = uni.getStorageSync('countChange');
+				console.log('countChange', countChange);
+				if (countChange) {
+					this.countMsgList = [];
+					this.pageIndex = 1;
+					this.isMore = false;
+					await this.getCountMsgs();
+
+					uni.setStorageSync('countChange', false);
+				}
+			}
+		},
+
+		scroll(e) {
+			this.old.scrollTop = e.detail.scrollTop;
+		},
+
+		goBottom(e) {
+			console.log('shengxiao');
+			this.scrollTop = this.old.scrollTop;
+			this.$nextTick(function() {
+				this.scrollTop = 9999;
+			});
+			// this.$nextTick(function(){
+			// 	uni.createSelectorQuery()
+			// 		.select('#gundong')
+			// 		.boundingClientRect(res => {
+			// 			console.log(res)
+			// 			var newbottom = res.bottom;
+			// 			if (Number(newbottom) > Number(this.old.scrollTop)) {
+			// 				this.scrollTop = newbottom;
+			// 			}
+			// 			this.old.scrollTop = newbottom;
+			// 		})
+			// 		.exec();
+			// })
+		},
+
+		setBgImg() {
 			uni.showLoading();
 
 			const { isLogin } = getApp().globalData;
@@ -95,6 +183,7 @@ export default {
 			}
 
 			uni.hideLoading();
+			return isLogin;
 		},
 
 		async getCountMsgs() {
@@ -104,21 +193,42 @@ export default {
 			});
 
 			console.log(countList);
+			this.totalNum = totalNum;
+
 			if (countList && countList.length > 0) {
-				const userName = getApp().globalData.userInfo.nickName;
-				countList.forEach(item => {
-					if (item.nickName === userName) {
-						item.role = 'right';
-					} else {
-						item.role = 'left';
-					}
-				});
 				this.countMsgList = countList.concat(this.countMsgList);
+				console.log('countMsgList', this.countMsgList);
+				if (this.pageIndex === 1) {
+					this.goBottom();
+				}
 				this.pageIndex++;
 			}
 		},
-		
-		editCount(){},
+
+		async getMoreCount() {
+			const countChange = uni.getStorageSync('countChange');
+			if (countChange) {
+				return;
+			}
+			console.log(22222);
+			if (this.pageIndex <= this.totalPage) {
+				await this.getCountMsgs();
+			} else {
+				if (!this.isMore) {
+					uni.showToast({
+						title: '无更多历史',
+						icon: 'none'
+					});
+					this.isMore = true;
+				}
+			}
+		},
+
+		toUpdate(data) {
+			uni.navigateTo({
+				url: `../updateCount/updateCount?remarks=${data}`
+			});
+		}
 
 		// // 添加新账目
 		// addCountItem() {
@@ -169,9 +279,16 @@ export default {
 		// toCalendar() {}
 	},
 	mounted() {
-		// this.getCountMsg();
-		// console.log(this.countMsgList);
+		// uni.createSelectorQuery()
+		// 	.select('#gundong')
+		// 	.boundingClientRect(res => {
+		// 		this.old.scrollTop = res.bottom; // 记录 滚动 元素的 bottom 值
+		// 	})
+		// 	.exec();
 	}
+	// updated() {
+
+	// }
 };
 </script>
 
@@ -221,6 +338,17 @@ $avatarSize = 80rpx
 		left 0
 		right 0
 		overflow auto
+		.home__msg
+			margin-bottom 40rpx
+		.home__timeBoard
+			display flex
+			justify-content center
+			.home__time
+				padding 5rpx 12rpx
+				border-radius 6rpx
+				color #333333
+				font-size 24rpx
+				background-color rgba(220, 220, 220, 0.6)
 		.home__avatar
 			width $avatarSize
 			height $avatarSize
@@ -232,7 +360,7 @@ $avatarSize = 80rpx
 			.home__msgContain-left
 				margin-left 20rpx
 				.home__msgOwner-left
-					width 100%
+					// width 100%
 					font-size 24rpx
 					color #666666
 				.home__msgMain-left
@@ -257,7 +385,7 @@ $avatarSize = 80rpx
 			.home__msgContain-right
 				margin-right 20rpx
 				.home__msgOwner-right
-					width 100%
+					// width 100%
 					text-align right
 					font-size 24rpx
 					color #666666
