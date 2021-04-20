@@ -44,7 +44,7 @@ exports.main = async (event, context) => {
 					count,
 					remarks,
 					createTime,
-					state: 0, // 条目记录的状态：0:未结算/ -1: 已结算 / -2：已删除
+					state: 0, // 条目记录的状态：0:未结算/ 1: 已结算 / -1：已删除
 				}
 			})
 

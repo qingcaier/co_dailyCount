@@ -6,7 +6,7 @@
 			<view class="countForm__yuan">元</view>
 		</view>
 		<view class="countForm__line"></view>
-		<view class="countForm__remarksItem"><textarea :value="formData.remarks" class="countForm__members" placeholder="这里写" @input="remarksChange" /></view>
+		<view class="countForm__remarksItem"><textarea :value="remarks" class="countForm__members" placeholder="这里写" @input="remarksChange" /></view>
 		<button class="countForm__btn" @click="submitCount">确定</button>
 	</view>
 </template>
@@ -32,6 +32,7 @@ export default {
 				let total = countArr.reduce((total, num) => {
 					return parseFloat(total) + parseFloat(num);
 				});
+				// return (Math.ceil(parseFloat(total) * 100)/100).toFixed(2);
 				return parseFloat(total).toFixed(2);
 			} else {
 				return '';
@@ -39,11 +40,17 @@ export default {
 		},
 
 		showCountBeforePoint() {
-			return this.totalCount.split('.')[0];
+			return this.totalCount.split('.')[0] || '';
 		},
 
 		showCountAfterPoint() {
-			return this.totalCount.split('.')[1];
+			// 不补充''会清空remarks会莫名其妙不清空小数点后数字
+			return this.totalCount.split('.')[1] || '';
+		}
+	},
+	watch: {
+		preRemarks() {
+			this.remarks = this.preRemarks;
 		}
 	},
 	data() {
@@ -60,6 +67,17 @@ export default {
 		// 输入框双向绑定
 		remarksChange(e) {
 			this.remarks = e.detail.value;
+		},
+
+		emitSubmit() {
+			this.$emit('submit', {
+				count: this.totalCount,
+				remarks: this.remarks
+			}, res => {
+				if(res){
+					this.remarks = '';
+				}
+			});
 		},
 
 		// 提交账目
@@ -86,10 +104,7 @@ export default {
 						position: 'top'
 					});
 					setTimeout(() => {
-						this.$emit('submit', {
-							count: this.totalCount,
-							remarks: this.remarks
-						});
+						this.emitSubmit();
 					}, 1000);
 				} else if (parseInt(beforePoint) >= 200) {
 					uni.showModal({
@@ -99,18 +114,12 @@ export default {
 						confirmText: '爷有钱',
 						success: res => {
 							if (res.confirm) {
-								this.$emit('submit', {
-									count: this.totalCount,
-									remarks: this.remarks
-								});
+								this.emitSubmit();
 							}
 						}
 					});
 				} else {
-					this.$emit('submit', {
-						count: this.totalCount,
-						remarks: this.remarks
-					});
+					this.emitSubmit();
 				}
 			} else {
 				uni.showModal({
@@ -143,14 +152,11 @@ export default {
 		align-items baseline
 		margin-top 16px
 		color #FB7299
-		
-		&-before{
+		&-before
 			font-size 60rpx
 			font-weight 600
-		}
-		&-after{
+		&-after
 			font-size 45rpx
-		}
 		.countForm__yuan
 			margin-left 20rpx
 			font-weight bold

@@ -31,14 +31,23 @@ export default {
 	},
 	methods: {
 		// 提交账目
-		async submitCount(data) {
+		async submitCount(data, callback) {
 			try {
 				await global.http('addCount', data);
 				
+				callback(true);
+				
 				uni.setStorageSync('countChange', true);
-				uni.switchTab({
-					url: "../home/home"
-				})
+				
+				uni.showToast({
+					title: '修改成功',
+					duration: 1500
+				});
+				setTimeout(() => {
+					uni.switchTab({
+						url: "../home/home"
+					});
+				}, 1500);
 			} catch (err) {
 				console.log(err);
 			}

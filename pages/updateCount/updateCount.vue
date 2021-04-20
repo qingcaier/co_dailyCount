@@ -4,12 +4,7 @@
 			<view class="addCount__avatarContain"><image class="addCount__avatarImg" :src="tempAvatar"></image></view>
 			<view class="addCount__avatarCamera"><image class="addCount__camera" src="../../static/images/camera.png"></image></view>
 		</view>
-		<view class="addCount__form">
-			<count-form v-if="isLogin" @submit="submitCount"></count-form>
-			<view v-else class="addCount__noLogin">
-				您还没有登录哦~~
-			</view>
-		</view>
+		<view class="addCount__form"><count-form :isEdit="true" :preRemarks="remarks" @submit="submitCount"></count-form></view>
 	</view>
 </template>
 
@@ -21,26 +16,38 @@ export default {
 	},
 	data() {
 		return {
-			isLogin: false,
+			remarks: '',
+			countId: '',
 			tempAvatar: 'cloud://qingczb-mint-test-hqawo.7169-qingczb-mint-test-hqawo-1302211891/uploadImg/avator.png' // 上传头像预览
 		};
 	},
 	computed: {},
 	watch: {},
-	
-	onShow() {
-		this.isLogin = getApp().globalData.isLogin;
+	onLoad(option) {
+		const { id, remarks } = JSON.parse(decodeURIComponent(option.params));
+		console.log(id, remarks);
+
+		this.remarks = remarks;
+		this.countId = id;
 	},
 	methods: {
 		// 提交账目
-		async submitCount(data) {
+		async submitCount(data, callback) {
 			console.log(data);
+			data.id = this.countId;
 
-			await global.http('addCount', data);
+			await global.http('updateCount', data);
 
-			uni.switchTab({
-				url: './home'
+			callback(true);
+
+			uni.setStorageSync('countChange', true);
+			uni.showToast({
+				title: '修改成功',
+				duration: 1500
 			});
+			setTimeout(() => {
+				uni.navigateBack();
+			}, 1500);
 		}
 	}
 };
@@ -93,10 +100,8 @@ $avatarWidth = 100rpx
 				height 30rpx
 	.addCount__form
 		width 100%
-		
-		.addCount__noLogin{
-			@extend .center;
-			margin-top 60rpx;
-			color: #777777
-		}
+		.addCount__noLogin
+			@extend .center
+			margin-top 60rpx
+			color #777777
 </style>

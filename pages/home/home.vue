@@ -26,9 +26,9 @@
 					</view>
 					<view :class="'home__msg-' + item.role">
 						<image class="home__avatar" :src="item.avatarUrl"></image>
-						<view :class="'home__msgContain-' + item.role">
-							<view :class="'home__msgOwner-' + item.role">{{ item.nickName }}</view>
-							<view :class="'home__msgMain-' + item.role" @click="toUpdate(item.remarks)">{{ item.remarks }}</view>
+						<view class="home__msgContain">
+							<view class="home__msgOwner">{{ item.nickName }}</view>
+							<view class="home__msgMain" :class="item.stateStyle" @click="toUpdate(item)">{{ item.remarks }}</view>
 						</view>
 					</view>
 				</view>
@@ -92,13 +92,14 @@ export default {
 				}
 
 				const userName = getApp().globalData.userInfo.nickName;
-				console.log('他妈的');
 				finalCountList.forEach(item => {
 					if (item.nickName === userName) {
 						item.role = 'right';
 					} else {
 						item.role = 'left';
 					}
+
+					item.stateStyle = this.setCountStateStyle(item.state);
 				});
 				console.log(finalCountList);
 				return finalCountList;
@@ -150,24 +151,10 @@ export default {
 		},
 
 		goBottom(e) {
-			console.log('shengxiao');
 			this.scrollTop = this.old.scrollTop;
 			this.$nextTick(function() {
 				this.scrollTop = 9999;
 			});
-			// this.$nextTick(function(){
-			// 	uni.createSelectorQuery()
-			// 		.select('#gundong')
-			// 		.boundingClientRect(res => {
-			// 			console.log(res)
-			// 			var newbottom = res.bottom;
-			// 			if (Number(newbottom) > Number(this.old.scrollTop)) {
-			// 				this.scrollTop = newbottom;
-			// 			}
-			// 			this.old.scrollTop = newbottom;
-			// 		})
-			// 		.exec();
-			// })
 		},
 
 		setBgImg() {
@@ -210,7 +197,6 @@ export default {
 			if (countChange) {
 				return;
 			}
-			console.log(22222);
 			if (this.pageIndex <= this.totalPage) {
 				await this.getCountMsgs();
 			} else {
@@ -225,9 +211,27 @@ export default {
 		},
 
 		toUpdate(data) {
-			uni.navigateTo({
-				url: `../updateCount/updateCount?remarks=${data}`
-			});
+			if (data.state === 0) {
+				const userName = getApp().globalData.userInfo.nickName;
+				if(data.nickName !== userName){
+					return;
+				}
+				const params = {
+					id: data._id,
+					remarks: data.remarks
+				};
+				uni.navigateTo({
+					url: `../updateCount/updateCount?params=${encodeURIComponent(JSON.stringify(params))}`
+				});
+			} else {
+				return;
+			}
+		},
+
+		setCountStateStyle(state) {
+			if (state === 1) {
+				return 'done';
+			}
 		}
 
 		// // 添加新账目
@@ -303,7 +307,7 @@ $avatarSize = 80rpx
 		right 0
 		bottom 0
 		z-index -1
-		opacity 0.8
+		opacity 0.2
 		.home__backgroundImg
 			width 100%
 			height 100%
@@ -357,50 +361,54 @@ $avatarSize = 80rpx
 			display flex
 			margin-top 20rpx
 			margin-left 16rpx
-			.home__msgContain-left
+			.home__msgContain
 				margin-left 20rpx
-				.home__msgOwner-left
+				.home__msgOwner
 					// width 100%
 					font-size 24rpx
 					color #666666
-				.home__msgMain-left
+				.home__msgMain
 					margin-top 6rpx
 					padding 10rpx 16rpx
-					background #FB7299
+					background #ffffff
 					border-radius 10rpx
 					position relative
-					color #ffffff
 					&:before
 						content ''
 						position absolute
 						right 100%
 						border-top 10rpx solid transparent
-						border-right 12rpx solid #FB7299
+						border-right 12rpx solid #ffffff
 						border-bottom 10rpx solid transparent
+				.done
+					background #FB7299
+					color #ffffff
 		.home__msg-right
 			display flex
 			flex-direction row-reverse
 			margin-top 20rpx
 			margin-right 16rpx
-			.home__msgContain-right
+			.home__msgContain
 				margin-right 20rpx
-				.home__msgOwner-right
+				.home__msgOwner
 					// width 100%
 					text-align right
 					font-size 24rpx
 					color #666666
-				.home__msgMain-right
+				.home__msgMain
 					margin-top 6rpx
 					padding 10rpx 16rpx
-					background #FB7299
+					background #95ec69
 					border-radius 10rpx
 					position relative
-					color #ffffff
 					&:after
 						content ''
 						position absolute
 						left 100%
 						border-top 10rpx solid transparent
-						border-left 12rpx solid #FB7299
+						border-left 12rpx solid #95ec69
 						border-bottom 10rpx solid transparent
+				.done
+					background #FB7299
+					color #ffffff
 </style>
