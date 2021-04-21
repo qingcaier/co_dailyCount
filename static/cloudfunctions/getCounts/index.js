@@ -36,20 +36,21 @@ exports.main = async (event, context) => {
 			// 查询用户所属群组
 			const group = (await db.collection("rooms").where({
 				'members': OPENID
-			}).get()).data[0];
+			}).get()).data;
 
 			console.log(group);
 
-			if (group && Object.keys(group).length > 0) {
+			if (group && group.length == 1) {
 				// 根据群组内用户获取群组账目记录
 				const {
 					members
-				} = group;
+				} = group[0];
 
 				const {
 					total: totalNum
 				} = (await db.collection("countRecords").where({
-					"creator": dbOptions.in(members)
+					"creator": dbOptions.in(members),
+					"state": dbOptions.neq(-1)
 				}).count());
 
 				const totalPage = Math.ceil(totalNum / pageCount);
@@ -60,8 +61,10 @@ exports.main = async (event, context) => {
 						skip,
 						limit
 					} = getSkipIndex(totalNum, pageIndex, pageCount);
+					console.log("skip", skip, limit)
 					list = (await db.collection("countRecords").aggregate().match({
-							"creator": dbOptions.in(members)
+							"creator": dbOptions.in(members),
+							"state": dbOptions.neq(-1)
 						})
 						.lookup({
 							from: "users",
@@ -94,6 +97,13 @@ exports.main = async (event, context) => {
 						totalNum
 					}
 				})
+			}else {
+				return {
+					head: {
+						resCode: "200005",
+						resMsg: "对不起，您的用户异常"
+					}
+				}
 			}
 		} else {
 			return {

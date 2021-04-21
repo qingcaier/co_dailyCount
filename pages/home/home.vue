@@ -8,7 +8,7 @@
 		<view v-if="isLogin" class="home_body">
 			<view class="home__header">
 				<image class="home__img" src="../../static/images/calendar.png" @click="goBottom()"></image>
-				<image class="home__img" src="../../static/images/add.png" @click="addCountItem"></image>
+				<image class="home__img" src="../../static/images/add.png" @click="toDispatch"></image>
 			</view>
 			<scroll-view
 				class="home__main"
@@ -232,6 +232,12 @@ export default {
 			if (state === 1) {
 				return 'done';
 			}
+		},
+		
+		toDispatch(){
+			uni.navigateTo({
+				url: `../dispatchCount/dispatchCount`
+			});
 		}
 
 		// // 添加新账目

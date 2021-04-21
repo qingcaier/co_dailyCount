@@ -21,6 +21,12 @@
 			"style": {
 				"navigationBarTitleText": "琐碎"
 			}
+		},
+		{
+			"path": "pages/dispatchCount/dispatchCount",
+			"style": {
+				"navigationBarTitleText": "没钱了"
+			}
 		}
 	],
 	"globalStyle": {

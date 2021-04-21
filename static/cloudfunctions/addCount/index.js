@@ -14,7 +14,7 @@ exports.main = async (event, context) => {
 			count,
 			remarks
 		} = event;
-		if (!count || !remarks) {
+		if (!count || !parseFloat(count) || !remarks) {
 			return {
 				head: {
 					resCode: "100002",

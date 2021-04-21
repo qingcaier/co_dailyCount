@@ -4,7 +4,7 @@
 			<view class="addCount__avatarContain"><image class="addCount__avatarImg" :src="tempAvatar"></image></view>
 			<view class="addCount__avatarCamera"><image class="addCount__camera" src="../../static/images/camera.png"></image></view>
 		</view>
-		<view class="addCount__form"><count-form :isEdit="true" :preRemarks="remarks" @submit="submitCount"></count-form></view>
+		<view class="addCount__form"><count-form :isEdit="true" :preRemarks="remarks" @submit="submitCount" @delete="deleteCount"></count-form></view>
 	</view>
 </template>
 
@@ -31,23 +31,46 @@ export default {
 		this.countId = id;
 	},
 	methods: {
+		async handleSubmit(params, { transCode, title = '修改成功', duration = 1500 }, callback) {
+			try {
+				await global.http(transCode, params);
+				callback(true);
+				uni.setStorageSync('countChange', true);
+				uni.showToast({
+					title,
+					duration
+				});
+				setTimeout(() => {
+					uni.navigateBack();
+				}, duration);
+			} catch {}
+		},
 		// 提交账目
-		async submitCount(data, callback) {
+		submitCount(data, callback) {
 			console.log(data);
 			data.id = this.countId;
+			return this.handleSubmit(
+				data,
+				{
+					transCode: 'updateCount'
+				},
+				callback
+			);
+		},
 
-			await global.http('updateCount', data);
-
-			callback(true);
-
-			uni.setStorageSync('countChange', true);
-			uni.showToast({
-				title: '修改成功',
-				duration: 1500
-			});
-			setTimeout(() => {
-				uni.navigateBack();
-			}, 1500);
+		deleteCount(data, callback) {
+			console.log(data);
+			const params = {
+				id: this.countId
+			};
+			return this.handleSubmit(
+				params,
+				{
+					transCode: 'deleteCount',
+					title: '删除成功'
+				},
+				callback
+			);
 		}
 	}
 };

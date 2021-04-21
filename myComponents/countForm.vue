@@ -7,7 +7,10 @@
 		</view>
 		<view class="countForm__line"></view>
 		<view class="countForm__remarksItem"><textarea :value="remarks" class="countForm__members" placeholder="这里写" @input="remarksChange" /></view>
-		<button class="countForm__btn" @click="submitCount">确定</button>
+		<view class="countForm__btnGroup">
+			<button v-if="isEdit" type="default" class="countForm__btn-delete" @click="deleteCount">删除</button>
+			<button class="countForm__btn-confirm" @click="submitCount">确定</button>
+		</view>
 	</view>
 </template>
 
@@ -69,15 +72,19 @@ export default {
 			this.remarks = e.detail.value;
 		},
 
-		emitSubmit() {
-			this.$emit('submit', {
-				count: this.totalCount,
-				remarks: this.remarks
-			}, res => {
-				if(res){
-					this.remarks = '';
+		emitSubmit(type) {
+			this.$emit(
+				type,
+				{
+					count: this.totalCount,
+					remarks: this.remarks
+				},
+				res => {
+					if (res) {
+						this.remarks = '';
+					}
 				}
-			});
+			);
 		},
 
 		// 提交账目
@@ -104,7 +111,7 @@ export default {
 						position: 'top'
 					});
 					setTimeout(() => {
-						this.emitSubmit();
+						this.emitSubmit("submit");
 					}, 1000);
 				} else if (parseInt(beforePoint) >= 200) {
 					uni.showModal({
@@ -114,12 +121,12 @@ export default {
 						confirmText: '爷有钱',
 						success: res => {
 							if (res.confirm) {
-								this.emitSubmit();
+								this.emitSubmit("submit");
 							}
 						}
 					});
 				} else {
-					this.emitSubmit();
+					this.emitSubmit("submit");
 				}
 			} else {
 				uni.showModal({
@@ -127,6 +134,20 @@ export default {
 					showCancel: false
 				});
 			}
+		},
+
+		deleteCount() {
+			uni.showModal({
+				title: '系统提示?',
+				content: '确定删除此账目？',
+				cancelText: '取消',
+				confirmText: '确定',
+				success: res => {
+					if (res.confirm) {
+						this.emitSubmit("delete");
+					}
+				}
+			});
 		}
 	}
 };
@@ -173,12 +194,22 @@ export default {
 			display flex
 			width 100%
 			margin-top 10px
-	.countForm__btn
-		height 60rpx
-		width 120rpx
-		font-size 30rpx
+	.countForm__btnGroup
 		@extend .center
-		background-color #FB7299
-		color #FFFFFF
-		margin-top 10px
+		
+		.countForm__btn
+			height 60rpx
+			width 120rpx
+			font-size 30rpx
+			@extend .center
+			margin-top 10px
+		
+		.countForm__btn-confirm
+			@extends .countForm__btn;
+			background #FB7299
+			color #ffffff
+			
+		.countForm__btn-delete
+			@extends.countForm__btn;
+	
 </style>

@@ -1,15 +1,15 @@
 function dispatch(list) {
   let result = [];
-  let average = list.reduce((total, n) => total + n.count, 0) / list.length;
-  let tempList = list.map((item) => {
+  const average = list.reduce((total, n) => total + n.count, 0) / list.length;
+  const tempList = list.map((item) => {
     return {
       openid: item.openid,
       count: item.count - average,
     };
   });
 
-  let debtors = tempList.filter((item) => item.count < 0);
-  let creditors = tempList.filter((item) => item.count > 0);
+  const debtors = tempList.filter((item) => item.count < 0);
+  const creditors = tempList.filter((item) => item.count > 0);
 
   recursive(debtors, creditors);
 
@@ -55,7 +55,7 @@ function dispatch(list) {
       if (arr1.length < len) {
         recursive(arr1, arr2);
       } else {
-        let quater = arr2[0].count + arr1[0].count;
+        const quater = arr2[0].count + arr1[0].count;
         if (quater > 0) {
           result.push({
             creditor: arr2[0].openid,
