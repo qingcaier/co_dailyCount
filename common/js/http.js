@@ -5,6 +5,7 @@ const http = function(transCode, params, opts = {}) {
 			showLoading = true,
 				loadingText = "请稍候",
 				errAlert = true,
+				callback = () => {}
 		} = opts;
 		if (showLoading) {
 			uni.showLoading({
@@ -30,6 +31,11 @@ const http = function(transCode, params, opts = {}) {
 						uni.showModal({
 							title: resMsg,
 							showCancel: false,
+							success: res => {
+								if (res.confirm) {
+									callback();
+								}
+							}
 						});
 					}
 					reject(res.result.head);
@@ -46,6 +52,11 @@ const http = function(transCode, params, opts = {}) {
 					uni.showModal({
 						title: "系统异常",
 						showCancel: false,
+						success: res => {
+							if (res.confirm) {
+								callback();
+							}
+						}
 					});
 				}
 				reject(err);

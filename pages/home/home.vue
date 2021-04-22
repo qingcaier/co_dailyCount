@@ -35,17 +35,10 @@
 				<!-- <view id="gundong" style="height:1px;width:100%"></view> -->
 			</scroll-view>
 		</view>
-		<!-- <view></view> -->
-		<uni-popup ref="popup" type="form"><uni-popup-form @submitForm="submitForm"></uni-popup-form></uni-popup>
-		<uni-popup ref="popup_fail" type="message"><uni-popup-message type="warn" :message="errorMsg" :duration="1500"></uni-popup-message></uni-popup>
 	</view>
 </template>
 
 <script>
-import uniPopup from '@/components/uni-popup/uni-popup.vue';
-import uniPopupForm from '@/components/uni-popup/uni-popup-form.vue';
-import uniPopupMessage from '@/components/uni-popup/uni-popup-message.vue';
-
 // import { play, stop } from '../../classes/snow.js';
 
 const bg = {
@@ -53,11 +46,7 @@ const bg = {
 	login: 'cloud://qingczb-mint-test-hqawo.7169-qingczb-mint-test-hqawo-1302211891/uploadImg/yangcai.jpg'
 };
 export default {
-	components: {
-		uniPopup,
-		uniPopupForm,
-		uniPopupMessage
-	},
+	components: {},
 	data() {
 		return {
 			bgImg: '', // 背景图
@@ -213,7 +202,7 @@ export default {
 		toUpdate(data) {
 			if (data.state === 0) {
 				const userName = getApp().globalData.userInfo.nickName;
-				if(data.nickName !== userName){
+				if (data.nickName !== userName) {
 					return;
 				}
 				const params = {
@@ -233,8 +222,8 @@ export default {
 				return 'done';
 			}
 		},
-		
-		toDispatch(){
+
+		toDispatch() {
 			uni.navigateTo({
 				url: `../dispatchCount/dispatchCount`
 			});
@@ -389,6 +378,8 @@ $avatarSize = 80rpx
 				.done
 					background #FB7299
 					color #ffffff
+					&:before
+						border-right 12rpx solid #FB7299
 		.home__msg-right
 			display flex
 			flex-direction row-reverse
@@ -417,4 +408,6 @@ $avatarSize = 80rpx
 				.done
 					background #FB7299
 					color #ffffff
+					&:after
+						border-left 12rpx solid #FB7299
 </style>

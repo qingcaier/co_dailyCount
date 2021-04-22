@@ -144,7 +144,10 @@ exports.main = async (event, context) => {
 				})
 			}
 
-			if (list && list.length > 0) {
+			const sum = list.reduce((total, item) => total.totalCount + item.totalCount);
+			console.log("sum", sum);
+
+			if (sum > 0) {
 
 				const tempList = list.map(item => {
 					return {
@@ -179,17 +182,6 @@ exports.main = async (event, context) => {
 					}
 				}));
 				console.log("finalList", finalList);
-
-				// 将账目置为已结算
-				const updateTime = moment().format("YYYY-MM-DD HH:mm:ss");
-				db.collection('countRecords').where({
-					state: 0
-				}).update({
-					data: {
-						updateTime,
-						state: 1
-					}
-				});
 
 				return ({
 					head: {
